@@ -23,32 +23,61 @@ function showRandomQuote(){
 
 
 }
-function createAddQuoteForm(){
-    addQuoteForm.innerHTML = 
-    `        <h3>Add New Quote</h3>
-    <input type="text" id="newQuoteText" placeholder="Enter a new quote" required>
-    <input type="text" id="newQuoteCategory" placeholder="Enter quote category" required>
-    <button onclick="addQuote()">Add Quote</button>`
-}
 function updateCategorySelected(){
     const categories = ['ALL', ...new Set(quotes.map(quote => quote.category))]
     categorySelect.innerHTML = categories.map(category=>
         `<option value="${category}">${category}</option>`)
         .join('');
 }
-function addQuotes(){
-    const newQuoteText = document.getElementById('newQuoteText').value;
-    const newQuoteCategory = document.getElementById('newQuoteCategory').value;
-    if(newQuoteText && newQuoteCategory){
-        quotes.push({
-            text: newQuoteText,
-            category: newQuoteCategory
-        })
-        newQuoteCategory= '';
-        newQuoteText = '';
-        updateCategorySelected()
-        showRandomQuote();
+// Function to create add quote form
+function createAddQuoteForm() {
+    addQuoteForm.innerHTML = ''; // Clear existing content
 
+    const formTitle = document.createElement('h3');
+    formTitle.textContent = 'Add New Quote';
+    addQuoteForm.appendChild(formTitle);
+
+    const quoteInput = document.createElement('input');
+    quoteInput.type = 'text';
+    quoteInput.id = 'newQuoteText';
+    quoteInput.placeholder = 'Enter a new quote';
+    quoteInput.required = true;
+    addQuoteForm.appendChild(quoteInput);
+
+    const categoryInput = document.createElement('input');
+    categoryInput.type = 'text';
+    categoryInput.id = 'newQuoteCategory';
+    categoryInput.placeholder = 'Enter quote category';
+    categoryInput.required = true;
+    addQuoteForm.appendChild(categoryInput);
+
+    const addButton = document.createElement('button');
+    addButton.textContent = 'Add Quote';
+    addButton.onclick = addQuote;
+    addQuoteForm.appendChild(addButton);
+}
+
+// Function to add a new quote
+function addQuote() {
+    const newQuoteText = document.getElementById('newQuoteText');
+    const newQuoteCategory = document.getElementById('newQuoteCategory');
+
+    if (newQuoteText.value && newQuoteCategory.value) {
+        const newQuote = {
+            text: newQuoteText.value,
+            category: newQuoteCategory.value
+        };
+        quotes.push(newQuote);
+
+        // Update the DOM to reflect the new quote
+        const quoteElement = document.createElement('div');
+        quoteElement.innerHTML = `"${newQuote.text}" <br><em>- ${newQuote.category}</em>`;
+        quoteDisplay.appendChild(quoteElement);
+
+        newQuoteText.value = '';
+        newQuoteCategory.value = '';
+
+        updateCategorySelected();
     }
 }
 newQuoteBtn.addEventListener('click', showRandomQuote)
