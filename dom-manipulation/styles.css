@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+button { margin: 10px 0; }
+#quoteDisplay { font-size: 1.2em; margin: 20px 0; font-style: italic; }
+#categorySelect { margin: 10px 0; }
