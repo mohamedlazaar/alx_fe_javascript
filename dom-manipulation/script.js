@@ -39,7 +39,6 @@ function updateCategorySelect() {
         `<option value="${category}">${category}</option>`
     ).join('');
 }
-
 function updateCategoryFilter() {
     const categories = [...new Set(quotes.map(quote => quote.category))];
     const currentFilter = localStorage.getItem('categoryFilter') || 'all';
@@ -53,21 +52,23 @@ function updateCategoryFilter() {
     
     categoryFilter.value = currentFilter;
 }
-
 function filterQuotes() {
     const selectedCategory = categoryFilter.value;
     localStorage.setItem('categoryFilter', selectedCategory);
     showRandomQuote();
 }
 
+function populateCategories() {
+    updateCategorySelect();
+    updateCategoryFilter();
+}
+
 function addQuote(text, author, category) {
     quotes.push({ text, author, category });
     saveQuotes();
-    updateCategorySelect();
-    updateCategoryFilter();
+    populateCategories();
     showRandomQuote();
 }
-
 function createAddQuoteForm() {
     const form = document.getElementById('addQuoteForm');
     form.innerHTML = `
@@ -109,13 +110,12 @@ function importFromJsonFile(event) {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const importedQuotes = JSON.parse(e.target.result);
-                quotes = quotes.concat(importedQuotes);
-                saveQuotes();
-                updateCategorySelect();
-                updateCategoryFilter();
-                showRandomQuote();
-                alert('Quotes imported successfully!');
+        const importedQuotes = JSON.parse(e.target.result);
+        quotes = quotes.concat(importedQuotes);
+        saveQuotes();
+        populateCategories();
+        showRandomQuote();
+        alert('Quotes imported successfully!');
             } catch (error) {
                 alert('Error importing quotes. Please check the file format.');
                 console.error('Import error:', error);
@@ -133,8 +133,7 @@ document.getElementById('importFile').addEventListener('change', importFromJsonF
 
 function initializeApp() {
     loadQuotes();
-    updateCategorySelect();
-    updateCategoryFilter();
+    populateCategories();
     createAddQuoteForm();
     showRandomQuote();
 }
