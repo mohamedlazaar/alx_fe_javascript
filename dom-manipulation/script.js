@@ -3,9 +3,7 @@ const quoteDisplay = document.getElementById('quoteDisplay');
 const newQuoteBtn = document.getElementById('newQuote');
 const categorySelect = document.getElementById('categorySelect');
 const categoryFilter = document.getElementById('categoryFilter');
-const notificationArea = document.createElement('div');
-notificationArea.id = 'notificationArea';
-document.body.insertBefore(notificationArea, document.body.firstChild);
+const notificationArea = document.getElementById('notificationArea');
 
 const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 const SYNC_INTERVAL = 60000; // 1 minute
@@ -20,7 +18,6 @@ function loadQuotes() {
 function saveQuotes() {
     localStorage.setItem('quotes', JSON.stringify(quotes));
 }
-
 
 function showRandomQuote() {
     if (quotes.length === 0) return;
@@ -46,6 +43,7 @@ function updateCategorySelect() {
         `<option value="${category}">${category}</option>`
     ).join('');
 }
+
 function updateCategoryFilter() {
     const categories = [...new Set(quotes.map(quote => quote.category))];
     const currentFilter = localStorage.getItem('categoryFilter') || 'all';
@@ -59,15 +57,11 @@ function updateCategoryFilter() {
     
     categoryFilter.value = currentFilter;
 }
+
 function filterQuotes() {
     const selectedCategory = categoryFilter.value;
     localStorage.setItem('categoryFilter', selectedCategory);
     showRandomQuote();
-}
-
-function populateCategories() {
-    updateCategorySelect();
-    updateCategoryFilter();
 }
 
 function addQuote(text, author, category) {
@@ -77,8 +71,10 @@ function addQuote(text, author, category) {
     updateCategorySelect();
     updateCategoryFilter();
     showRandomQuote();
+    postQuoteToServer(newQuote);
     syncWithServer();
 }
+
 function createAddQuoteForm() {
     const form = document.getElementById('addQuoteForm');
     form.innerHTML = `
@@ -120,20 +116,23 @@ function importFromJsonFile(event) {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-        const importedQuotes = JSON.parse(e.target.result);
-        quotes = quotes.concat(importedQuotes);
-        saveQuotes();
-        populateCategories();
-        showRandomQuote();
-        alert('Quotes imported successfully!');
+                const importedQuotes = JSON.parse(e.target.result);
+                quotes = quotes.concat(importedQuotes);
+                saveQuotes();
+                updateCategorySelect();
+                updateCategoryFilter();
+                showRandomQuote();
+                syncWithServer();
+                notifyUser('Quotes imported successfully!');
             } catch (error) {
-                alert('Error importing quotes. Please check the file format.');
+                notifyUser('Error importing quotes. Please check the file format.');
                 console.error('Import error:', error);
             }
         };
         reader.readAsText(file);
     }
 }
+
 async function fetchQuotesFromServer() {
     try {
         const response = await fetch(API_URL);
@@ -151,9 +150,39 @@ async function fetchQuotesFromServer() {
     }
 }
 
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: quote.text,
+                body: quote.author,
+                userId: 1, // This is required by JSONPlaceholder
+            }),
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        console.log('Quote posted to server:', data);
+        return data;
+    } catch (error) {
+        console.error('Error posting quote to server:', error);
+    }
+}
+
 async function syncWithServer() {
     const serverQuotes = await fetchQuotesFromServer();
     const localQuotes = quotes;
+    
+    // Post new local quotes to server
+    for (const quote of localQuotes) {
+        if (!serverQuotes.some(sq => sq.id === quote.id)) {
+            await postQuoteToServer(quote);
+        }
+    }
     
     const mergedQuotes = mergeQuotes(localQuotes, serverQuotes);
     
