@@ -172,28 +172,42 @@ async function postQuoteToServer(quote) {
         console.error('Error posting quote to server:', error);
     }
 }
+async function syncQuotes() {
+    try {
+        // Fetch quotes from server
+        const serverQuotes = await fetchQuotesFromServer();
+        
+        // Identify new local quotes
+        const newLocalQuotes = quotes.filter(localQuote => 
+            !serverQuotes.some(serverQuote => serverQuote.id === localQuote.id)
+        );
+
+        // Post new local quotes to server
+        for (const newQuote of newLocalQuotes) {
+            await postQuoteToServer(newQuote);
+        }
+
+        // Merge server quotes with local quotes
+        const mergedQuotes = mergeQuotes(quotes, serverQuotes);
+
+        // Update local storage if there are changes
+        if (JSON.stringify(mergedQuotes) !== JSON.stringify(quotes)) {
+            quotes = mergedQuotes;
+            saveQuotes();
+            updateCategorySelect();
+            updateCategoryFilter();
+            showRandomQuote();
+            notifyUser('Quotes have been synchronized with the server.');
+        }
+    } catch (error) {
+        console.error('Error syncing quotes:', error);
+        notifyUser('Failed to sync quotes with the server. Please try again later.');
+    }
+}
+
 
 async function syncWithServer() {
-    const serverQuotes = await fetchQuotesFromServer();
-    const localQuotes = quotes;
-    
-    // Post new local quotes to server
-    for (const quote of localQuotes) {
-        if (!serverQuotes.some(sq => sq.id === quote.id)) {
-            await postQuoteToServer(quote);
-        }
-    }
-    
-    const mergedQuotes = mergeQuotes(localQuotes, serverQuotes);
-    
-    if (JSON.stringify(mergedQuotes) !== JSON.stringify(localQuotes)) {
-        quotes = mergedQuotes;
-        saveQuotes();
-        updateCategorySelect();
-        updateCategoryFilter();
-        showRandomQuote();
-        notifyUser('Quotes have been updated from the server.');
-    }
+    await syncQuotes();
 }
 
 function mergeQuotes(localQuotes, serverQuotes) {
@@ -226,8 +240,8 @@ function initializeApp() {
     updateCategoryFilter();
     createAddQuoteForm();
     showRandomQuote();
-    syncWithServer();
-    setInterval(syncWithServer, SYNC_INTERVAL);
+    syncQuotes(); // Initial sync
+    setInterval(syncQuotes, SYNC_INTERVAL)
 }
 
 newQuoteBtn.addEventListener('click', showRandomQuote);
