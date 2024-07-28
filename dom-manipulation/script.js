@@ -127,6 +127,7 @@ function importFromJsonFile(event) {
 
 newQuoteBtn.addEventListener('click', showRandomQuote);
 categorySelect.addEventListener('change', showRandomQuote);
+categoryFilter.addEventListener('change', filterQuotes);
 document.getElementById('exportQuotes').addEventListener('click', exportToJsonFile);
 document.getElementById('importFile').addEventListener('change', importFromJsonFile);
 
