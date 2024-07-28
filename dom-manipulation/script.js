@@ -123,9 +123,9 @@ function importFromJsonFile(event) {
                 updateCategoryFilter();
                 showRandomQuote();
                 syncQuotes();
-                notifyUser('Quotes imported successfully!');
+                alert('Quotes imported successfully!');
             } catch (error) {
-                notifyUser('Error importing quotes. Please check the file format.');
+                alert('Error importing quotes. Please check the file format.');
                 console.error('Import error:', error);
             }
         };
@@ -191,21 +191,22 @@ async function syncQuotes() {
             const conflicts = identifyConflicts(quotes, serverQuotes);
             
             if (conflicts.length > 0) {
-                notifyUser(`${conflicts.length} quote(s) have conflicts. Click to resolve.`, true);
+                alert(`${conflicts.length} quote(s) have conflicts. Please resolve them.`);
+                // Here you would typically open a UI for conflict resolution
             } else {
                 quotes = mergedQuotes;
                 saveQuotes();
                 updateCategorySelect();
                 updateCategoryFilter();
                 showRandomQuote();
-                notifyUser('Quotes have been updated from the server.');
+                alert('Quotes synced with server!');
             }
         } else {
-            notifyUser('Quotes are up to date.');
+            alert('Quotes are up to date.');
         }
     } catch (error) {
         console.error('Error syncing quotes:', error);
-        notifyUser('Failed to sync quotes with the server. Please try again later.');
+        alert('Failed to sync quotes with the server. Please try again later.');
     }
 }
 
@@ -239,6 +240,8 @@ function mergeQuotes(localQuotes, serverQuotes) {
 }
 
 function notifyUser(message, isConflict = false) {
+    alert(message);
+    // We'll keep the notification area for visual feedback as well
     notificationArea.textContent = message;
     notificationArea.style.display = 'block';
     notificationArea.style.backgroundColor = isConflict ? '#ffcccc' : '#ccffcc';
@@ -258,9 +261,9 @@ function notifyUser(message, isConflict = false) {
 
 function manuallyResolveConflict() {
     // This function would open a UI for manual conflict resolution
-    // For now, we'll just log a message
+    // For now, we'll just log a message and show an alert
     console.log('Manual conflict resolution would be handled here');
-    notifyUser('Conflict resolved. Syncing with server...', false);
+    alert('Conflict resolved. Syncing with server...');
     syncQuotes();
 }
 
